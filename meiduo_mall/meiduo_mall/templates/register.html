@@ -65,6 +65,9 @@
                             <label>同意”美多商城用户使用协议“</label>
                             <span class="error_tip" v-show="error_allow">请勾选用户协议</span>
                         </li>
+                        {% if register_errmsg %}
+                            <span class="error_tip2">{{ register_errmsg }}</span>
+                        {% endif %}
                         <li class="reg_sub">
                             <input type="submit" value="注 册">
                         </li>
