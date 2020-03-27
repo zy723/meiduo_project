@@ -73,6 +73,23 @@ let vm = new Vue({
                 this.error_mobile_message = '您输入的手机格式不正确';
                 this.error_mobile = true;
             }
+            if (this.error_mobile == false) {
+                let url = '/mobiles/' + this.mobile + '/count/'
+                axios.get(url, {
+                    responseType: 'json'
+                }).then(response => {
+                    if (response.data.count == 1) {
+                        this.error_mobile_message = '手机号已存在';
+                        this.error_mobile = true;
+                    } else {
+                        this.error_mobile = false;
+                    }
+                }).catch(error => {
+                    console.log(error.response)
+                    this.error_mobile = true;
+                })
+            }
+
         },
         // 检验是否勾选表单
         check_allow() {
