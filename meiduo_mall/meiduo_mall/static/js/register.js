@@ -9,6 +9,7 @@ let vm = new Vue({
         password2: '',
         mobile: '',
         allow: '',
+        image_code_url: '', // 图片地址
         // v-show
         error_username: false,
         error_password: false,
@@ -19,8 +20,18 @@ let vm = new Vue({
         error_name_message: '',
         error_mobile_message: ''
     },
+    mounted() {
+        this.generate_image_code();
+    },
     methods: {
         // 方法对象
+        // 生成图片验证码
+        generate_image_code() {
+            // 从common.js 导入uuid
+            this.uuid = generateUUID();
+            this.image_code_url = '/image_codes/' + this.uuid + '/'
+        },
+
         // 检验用户名
         check_username() {
             let re = /^[a-zA-Z0-9_-]{5,20}$/

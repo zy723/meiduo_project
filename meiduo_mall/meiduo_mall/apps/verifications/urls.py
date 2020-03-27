@@ -14,9 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-# from .views import RegisterView, IndexView
+from .views import ImageCodeView
 
 urlpatterns = [
     # url(r'^register/$', RegisterView.as_view(), name='register'),
-    # url(r'^', IndexView.as_view(), name='index'),
+    url(r'^image_codes/(?P<uuid>[\w-]+)/', ImageCodeView.as_view(), name='image'),
 ]
