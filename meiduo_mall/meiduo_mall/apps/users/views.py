@@ -4,8 +4,6 @@ from django import http
 from django.contrib.auth import login
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
-
-# Create your views here.
 from django.urls import reverse
 from django.views.generic.base import View
 

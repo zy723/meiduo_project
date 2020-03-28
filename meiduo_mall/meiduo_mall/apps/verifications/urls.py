@@ -14,9 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from .views import ImageCodeView
+from .views import ImageCodeView, SMSCodeView
 
 urlpatterns = [
     # url(r'^register/$', RegisterView.as_view(), name='register'),
-    url(r'^image_codes/(?P<uuid>[\w-]+)/', ImageCodeView.as_view(), name='image'),
+    url(r'^image_codes/(?P<uuid>[\w-]+)/$', ImageCodeView.as_view(), name='image_code'),
+    url(r'^sms_codes/(?P<mobile>1[3-9]\d{9})/$', SMSCodeView.as_view()),
 ]
