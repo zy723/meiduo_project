@@ -6,6 +6,7 @@ from django import http
 from django.views.generic.base import View
 from django_redis import get_redis_connection
 
+from celery_tasks.sms.tasks import ccp_send_sms_code
 from .libs.yuntongxun.ccp_sms import CCP
 from meiduo_mall.utils import constants
 from meiduo_mall.utils.response_code import RETCODE
@@ -84,6 +85,11 @@ class SMSCodeView(View):
         # send_sms_code.delay(mobile, sms_code)
         # CCP().send_template_sms(mobile, [sms_code, constants.SMS_CODE_REDIS_EXPIRES // 60],
         #                         constants.SEND_SMS_TEMPLATE_ID)
+
+        # 异步发送验证码
+
+        ccp_send_sms_code.delay(mobile, sms_code)
+
         print(sms_code)
         # 相应发送结果
         return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功'})
