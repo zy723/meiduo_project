@@ -2,6 +2,7 @@ import re
 
 from django import http
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -11,10 +12,20 @@ from meiduo_mall.utils.response_code import RETCODE
 from .models import User
 
 
+class UserInfoView(LoginRequiredMixin, View):
+    """
+    用户中心
+    """
+
+    def get(self, request):
+        return render(request, 'user_center_info.html')
+
+
 class LogoutView(View):
     """
     退出登录
     """
+
     def get(self, request):
         """
         实现退出登录逻辑
@@ -29,7 +40,6 @@ class LogoutView(View):
         response.delete_cookie('username')
 
         return response
-
 
 
 class LoginView(View):
@@ -80,7 +90,11 @@ class LoginView(View):
             request.session.set_expiry(None)
 
         # 响应登录结果
-        response = redirect(reverse('contents:index'))
+        next = request.GET.get('next')
+        if next:
+            response = redirect(next)
+        else:
+            response = redirect(reverse('contents:index'))
         # 写入cookie 有效期 15天
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
 
