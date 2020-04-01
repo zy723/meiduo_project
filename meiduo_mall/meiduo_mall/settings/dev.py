@@ -37,9 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'meiduo_mall.apps.users',
-    'users',
-    'contents',
-    'verifications',
+    'users',    # 用户注册页面
+    'contents',     # 首页展示
+    'verifications',    # 验证码模块
 ]
 
 MIDDLEWARE = [
