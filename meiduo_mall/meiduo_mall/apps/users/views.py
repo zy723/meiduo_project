@@ -1,7 +1,7 @@
 import re
 
 from django import http
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -9,6 +9,27 @@ from django.views.generic.base import View
 
 from meiduo_mall.utils.response_code import RETCODE
 from .models import User
+
+
+class LogoutView(View):
+    """
+    退出登录
+    """
+    def get(self, request):
+        """
+        实现退出登录逻辑
+        :param request:
+        :return:
+        """
+        logout(request)
+
+        # 退出后重定向到首页
+        response = redirect(reverse('contents:index'))
+
+        response.delete_cookie('username')
+
+        return response
+
 
 
 class LoginView(View):
@@ -42,7 +63,7 @@ class LoginView(View):
 
         # 用户登录
 
-        user = authenticate(username=username, password=password)   # 重写该方法实现多用户登录
+        user = authenticate(username=username, password=password)  # 重写该方法实现多用户登录
 
         if user is None:
             return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
@@ -60,7 +81,7 @@ class LoginView(View):
 
         # 响应登录结果
         response = redirect(reverse('contents:index'))
-
+        # 写入cookie 有效期 15天
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
 
         return response
@@ -146,4 +167,10 @@ class RegisterView(View):
         login(request, user)
         # 注册成功 重定向到首页
         # return http.HttpResponseForbidden('注册成功,重定向到首页')
-        return redirect(reverse('contents:index'))
+
+        response = redirect(reverse('contents:index'))
+
+        # 写入cookie 有效期15天
+        response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
+
+        return response
