@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import sys
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
@@ -37,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'meiduo_mall.apps.users',
-    'users',    # 用户注册页面
-    'contents',     # 首页展示
-    'verifications',    # 验证码模块
+    'users',  # 用户注册页面
+    'contents',  # 首页展示
+    'verifications',  # 验证码模块
 ]
 
 MIDDLEWARE = [
@@ -213,3 +214,6 @@ LOGGING = {
 }
 # 指定自定义用户模型类
 AUTH_USER_MODEL = 'users.User'
+
+# 指定自定义用户认证后端
+AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']

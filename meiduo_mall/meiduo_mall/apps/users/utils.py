@@ -43,7 +43,7 @@ class UsernameMobileAuthBackend(ModelBackend):
 
         # 校验用户是否存在并检验密码
 
-        if user and user.cheack_password(password):
+        if user and user.check_password(password):
             return user
         else:
             return None

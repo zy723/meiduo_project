@@ -42,7 +42,7 @@ class LoginView(View):
 
         # 用户登录
 
-        user = authenticate(username=username, password=password)
+        user = authenticate(username=username, password=password)   # 重写该方法实现多用户登录
 
         if user is None:
             return render(request, 'login.html', {'account_errmsg': '用户名或密码错误'})
