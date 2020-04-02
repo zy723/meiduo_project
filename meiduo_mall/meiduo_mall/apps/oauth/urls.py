@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from .views import QQAuthURLView
+from .views import QQAuthURLView, QQAuthUserView
 
 urlpatterns = [
     url(r'^qq/login/$', QQAuthURLView.as_view(), name='qq_login'),
-    url(r'^oauth_callback/$', QQAuthURLView.as_view(), name='qq_oauth_callback'),
+    url(r'^oauth_callback/$', QQAuthUserView.as_view(), name='qq_oauth_callback'),
 ]
