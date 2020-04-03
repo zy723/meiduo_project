@@ -1,4 +1,5 @@
-import re
+import json
+import re, logging
 
 from django import http
 from django.contrib.auth import login, authenticate, logout
@@ -8,8 +9,73 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic.base import View
 
+from celery_tasks.email.tasks import send_verify_email
+from .utils import generate_verify_email_url, check_verify_email_token
 from meiduo_mall.utils.response_code import RETCODE
+from meiduo_mall.utils.views import LoginRequiredJSONMixin
 from .models import User
+
+logger = logging.getLogger('django')
+
+
+class VerifyEmailView(View):
+    """
+    验证邮箱
+    验证邮箱的核心：就是将用户的email_active字段设置为True
+    """
+
+    def get(self, request):
+        token = request.GET.get('token')
+        # 验证token
+        if not token:
+            return http.HttpResponseBadRequest('缺少token')
+        user = check_verify_email_token(token)
+        if not user:
+            http.HttpResponseForbidden('无效的token')
+
+        # 修改email_active = true
+
+        try:
+            user.email_active = True
+            user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.HttpResponseServerError('激活失败')
+
+        else:
+
+            return redirect(reverse('users:info'))
+
+
+class EmailView(LoginRequiredJSONMixin, View):
+    """
+    添加邮箱验证
+    """
+
+    def put(self, request):
+
+        json_dict = json.loads(request.body.decode())
+        email = json_dict.get('email')
+
+        # 校验参数
+        if not email:
+            return http.HttpResponseForbidden('缺少必要参数')
+        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+            return http.HttpResponseForbidden('参数email格式有误')
+
+        # 保存邮箱
+        try:
+            request.user.email = email
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.HttpResponseForbidden({'code': RETCODE.DBERR, 'errmsg': '添加邮箱失败'})
+        else:
+            veriffy_url = generate_verify_email_url(request.user)
+            # 发送邮件
+            send_verify_email.delay(email, veriffy_url)
+
+            return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '添加邮箱成功'})
 
 
 class UserInfoView(LoginRequiredMixin, View):
@@ -18,7 +84,14 @@ class UserInfoView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        return render(request, 'user_center_info.html')
+        context = {
+            'username': request.user.username,
+            'mobile': request.user.mobile,
+            'email': request.user.email,
+            'email_active': request.user.email_active,
+        }
+
+        return render(request, 'user_center_info.html', context)
 
 
 class LogoutView(View):

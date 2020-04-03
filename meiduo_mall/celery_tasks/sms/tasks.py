@@ -10,9 +10,9 @@ import logging
 logger = logging.getLogger('ccp_send_sms_code')
 
 
-# @celery_app.task(bind=True, name='ccp_send_sms_code', retry_backoff=3)
-@celery_app.task(name='ccp_send_sms_code')
-def ccp_send_sms_code(mobile, sms_code):
+@celery_app.task(bind=True, name='ccp_send_sms_code', retry_backoff=3)
+# @celery_app.task(name='ccp_send_sms_code')
+def ccp_send_sms_code(self, mobile, sms_code):
     """
 
     :return:
@@ -27,7 +27,7 @@ def ccp_send_sms_code(mobile, sms_code):
     except Exception as e:
         logger.error(e)
         # 存在异常重试3次
-        # raise self.retry(exc=e, max_retries=3)
         send_ret = -1
+        raise self.retry(exc=e, max_retries=3)
 
     return send_ret

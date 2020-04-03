@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from .views import RegisterView, UsernameCountView, MobileCountView, LoginView, LogoutView, UserInfoView
+from .views import *
 
 urlpatterns = [
     # 用户注册
@@ -30,4 +30,8 @@ urlpatterns = [
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
     # 用户中心
     url(r'^info/$', UserInfoView.as_view(), name='info'),
+    # 添加邮箱
+    url(r'^emails/$', EmailView.as_view(), name='emails'),
+    # 验证邮箱
+    url(r'^emails/verification/$', VerifyEmailView.as_view(), name='emails_verification'),
 ]

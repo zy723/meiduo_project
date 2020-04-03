@@ -110,6 +110,7 @@ let vm = new Vue({
                             }
                         }, 1000)
                     } else {
+                        this.generate_image_code(); // 重新生成图形验证码
                         if (response.data.code == '4001') {
                             this.error_image_code_message = response.data.errmsg;
                             this.error_image_code = true;
