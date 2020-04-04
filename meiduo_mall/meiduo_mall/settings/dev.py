@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'contents',  # 首页展示
     'verifications',  # 验证码模块
     'oauth',  # 用户认证模块
+    'areas',  # 省市区
 ]
 
 MIDDLEWARE = [

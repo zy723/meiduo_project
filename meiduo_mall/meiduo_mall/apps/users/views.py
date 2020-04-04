@@ -18,6 +18,15 @@ from .models import User
 logger = logging.getLogger('django')
 
 
+class AddressView(LoginRequiredMixin, View):
+    """
+    用户收获地址
+    """
+
+    def get(self, request):
+        return render(request, 'user_center_site.html')
+
+
 class VerifyEmailView(View):
     """
     验证邮箱

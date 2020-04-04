@@ -34,4 +34,6 @@ urlpatterns = [
     url(r'^emails/$', EmailView.as_view(), name='emails'),
     # 验证邮箱
     url(r'^emails/verification/$', VerifyEmailView.as_view(), name='emails_verification'),
+    # 用户收货地址
+    url(r'^address/$', AddressView.as_view(), name='address')
 ]
