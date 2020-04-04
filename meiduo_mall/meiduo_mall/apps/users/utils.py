@@ -1,11 +1,13 @@
+import re
+import logging
 from django.contrib.auth.backends import ModelBackend
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, BadData
-
-import re
 
 from django.conf import settings
 from . import constants
 from .models import User
+
+logger = logging.getLogger('django')
 
 
 def check_verify_email_token(token):
@@ -58,7 +60,8 @@ def get_user_by_account(account):
         else:
             # 用户名
             user = User.objects.get(username=account)
-    except User.DoseNotExist:
+    except Exception as e:
+        logger.error(e)
         return None
     else:
         return user

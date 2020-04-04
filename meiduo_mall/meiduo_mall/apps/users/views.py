@@ -1,6 +1,6 @@
 import json
-import re, logging
-
+import re
+import logging
 from django import http
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -10,12 +10,213 @@ from django.urls import reverse
 from django.views.generic.base import View
 
 from celery_tasks.email.tasks import send_verify_email
+from . import constants
 from .utils import generate_verify_email_url, check_verify_email_token
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredJSONMixin
-from .models import User
+from .models import *
 
 logger = logging.getLogger('django')
+
+
+class CreateAddressView(LoginRequiredMixin, View):
+    """创建收获地址"""
+
+    def get(self, request):
+        pass
+
+    def post0(self, request):
+        """
+        1. 接收参数
+        参数名	类型	是否必传	说明
+        receiver	string	是	收货人
+        province_id	string	是	省份ID
+        city_id	string	是	城市ID
+        district_id	string	是	区县ID
+        place	string	是	收货地址
+        mobile	string	是	手机号
+        tel	string	否	固定电话
+        email	string	否	邮箱
+
+        2. 响应结果：JSON
+
+        字段	说明
+        code	状态码
+        errmsg	错误信息
+        id	地址ID
+        receiver	收货人
+        province	省份名称
+        city	城市名称
+        district	区县名称
+        place	收货地址
+        mobile	手机号
+        tel	固定电话
+        email	邮箱
+        :param request:
+        :return:
+        """
+
+        # 判断地址是否超出 上限
+        # 原始查询方式
+        # Address.objects.filter(user=request.user).count()
+        # 一查多的方式
+        count = request.user.addresses.count()
+
+        if count >= constants.USER_ADDRESS_COUNTS_LIMIT:
+            return http.JsonResponse({'code': RETCODE.THROTTLINGERR, 'errmsg': '超过地址上限'})
+
+        # 接收传入参数
+        json_str = request.body.decode()
+        json_dict = json.loads(json_str)
+        receiver = json_dict.get('receiver')
+        province_id = json_dict.get('province_id')
+        city_id = json_dict.get('city_id')
+        district_id = json_dict.get('district_id')
+        place = json_dict.get('place')
+        mobile = json_dict.get('mobile')
+        tel = json_dict.get('tel')
+        email = json_dict.get('email')
+
+        # 校验参数
+        if not all([receiver, province_id, city_id, district_id, place, mobile]):
+            http.HttpResponseForbidden('缺少必传参数')
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            http.HttpResponseForbidden('参数mobile有误')
+        if not re.match(r'^^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+            http.HttpResponseForbidden('参数tel有误')
+        if email:
+            if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+                http.HttpResponseForbidden('参数email有误')
+
+        # 保存收获地址
+        try:
+            # address = Address.objects.create(
+            #     user=request.user,
+            #     title=receiver,
+            #     receiver=receiver,
+            #     province_id=province_id,
+            #     city_id=city_id,
+            #     district_id=district_id,
+            #     place=place,
+            #     mobile=mobile,
+            #     tel=tel,
+            #     email=email
+            # )
+            # # 设置成默认地址
+            # if not request.user.default_address:
+            #     request.user.default_address = address
+            #     request.user.save()
+
+            address = Address.objects.create(
+                user=request.user,
+                title=receiver,  # 标题默认就是收货人
+                receiver=receiver,
+                province_id=province_id,
+                city_id=city_id,
+                district_id=district_id,
+                place=place,
+                mobile=mobile,
+                tel=tel,
+                email=email,
+            )
+
+            # 如果登录用户没有默认的地址，我们需要指定默认地址
+            if not request.user.default_address:
+                request.user.default_address = address
+                request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '新增地址失败'})
+
+        # 新增地址展示给前端
+        address_dict = {
+            'id': address.id,
+            'title': address.title,
+            'receiver': address.receiver,
+            'province': address.province.name,
+            'city': address.city.name,
+            'district': address.district.name,
+            'place': address.place,
+            'mobile': address.mobile,
+            'tel': address.tel,
+            'email': address.email,
+        }
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '新增地址成功', 'address': address_dict})
+
+    """新增地址"""
+
+    def post(self, reqeust):
+        """实现新增地址逻辑"""
+
+        # 判断用户地址数量是否超过上限：查询当前登录用户的地址数量
+        # count = Address.objects.filter(user=reqeust.user).count()
+        count = reqeust.user.addresses.count()  # 一查多，使用related_name查询
+        if count > constants.USER_ADDRESS_COUNTS_LIMIT:
+            return http.JsonResponse({'code': RETCODE.THROTTLINGERR, 'errmsg': '超出用户地址上限'})
+
+        # 接收参数
+        json_str = reqeust.body.decode()
+        json_dict = json.loads(json_str)
+        receiver = json_dict.get('receiver')
+        province_id = json_dict.get('province_id')
+        city_id = json_dict.get('city_id')
+        district_id = json_dict.get('district_id')
+        place = json_dict.get('place')
+        mobile = json_dict.get('mobile')
+        tel = json_dict.get('tel')
+        email = json_dict.get('email')
+
+        # 校验参数
+        if not all([receiver, province_id, city_id, district_id, place, mobile]):
+            return http.HttpResponseForbidden('缺少必传参数')
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return http.HttpResponseForbidden('参数mobile有误')
+        if tel:
+            if not re.match(r'^(0[0-9]{2,3}-)?([2-9][0-9]{6,7})+(-[0-9]{1,4})?$', tel):
+                return http.HttpResponseForbidden('参数tel有误')
+        if email:
+            if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
+                return http.HttpResponseForbidden('参数email有误')
+
+        # 保存用户传入的地址信息
+        try:
+            address = Address.objects.create(
+                user=reqeust.user,
+                title=receiver,  # 标题默认就是收货人
+                receiver=receiver,
+                province_id=province_id,
+                city_id=city_id,
+                district_id=district_id,
+                place=place,
+                mobile=mobile,
+                tel=tel,
+                email=email,
+            )
+
+            # 如果登录用户没有默认的地址，我们需要指定默认地址
+            if not reqeust.user.default_address:
+                reqeust.user.default_address = address
+                reqeust.user.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '新增地址失败'})
+
+        # 构造新增地址字典数据
+        address_dict = {
+            "id": address.id,
+            "title": address.title,
+            "receiver": address.receiver,
+            "province": address.province.name,
+            "city": address.city.name,
+            "district": address.district.name,
+            "place": address.place,
+            "mobile": address.mobile,
+            "tel": address.tel,
+            "email": address.email
+        }
+
+        # 响应新增地址结果：需要将新增的地址返回给前端渲染
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': '新增地址成功', 'address': address_dict})
 
 
 class AddressView(LoginRequiredMixin, View):
@@ -24,7 +225,35 @@ class AddressView(LoginRequiredMixin, View):
     """
 
     def get(self, request):
-        return render(request, 'user_center_site.html')
+        """
+        :param request:
+        :return:
+        """
+        login_user = request.user
+        addresses = Address.objects.filter(user=login_user, is_deleted=False)
+
+        address_dict_list = []
+        for address in addresses:
+            address_dict = {
+                "id": address.id,
+                "title": address.title,
+                "receiver": address.receiver,
+                "province": address.province.name,
+                "city": address.city.name,
+                "district": address.district.name,
+                "place": address.place,
+                "mobile": address.mobile,
+                "tel": address.tel,
+                "email": address.email
+            }
+            address_dict_list.append(address_dict)
+
+        context = {
+            'default_address_id': login_user.default_address_id,
+            'addresses': address_dict_list,
+        }
+
+        return render(request, 'user_center_site.html', context)
 
 
 class VerifyEmailView(View):
@@ -154,7 +383,6 @@ class LoginView(View):
             return http.HttpResponseForbidden('密码最少为8位,最长为20位')
 
         # 用户登录
-
         user = authenticate(username=username, password=password)  # 重写该方法实现多用户登录
 
         if user is None:
