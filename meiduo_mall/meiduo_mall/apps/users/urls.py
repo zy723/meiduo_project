@@ -28,6 +28,8 @@ urlpatterns = [
     url(r'^login/$', LoginView.as_view(), name='login'),
     # 退出登录
     url(r'^logout/$', LogoutView.as_view(), name='logout'),
+
+    # ---------------------------------------------------------------------
     # 用户中心
     url(r'^info/$', UserInfoView.as_view(), name='info'),
     # 添加邮箱
@@ -37,6 +39,13 @@ urlpatterns = [
     # 展示用户收货地址
     url(r'^addresses/$', AddressView.as_view(), name='address'),
     # 创建收货地址
-    url(r'^addresses/create/$', CreateAddressView.as_view(), name='create'),
+    url(r'^addresses/create/$', CreateAddressView.as_view(), name='addresses_create'),
+    # 修改收货地址
+    url(r'^addresses/(?P<address_id>\d+)/$', UpdateDestroyAddressView.as_view(), name='addresses_change'),
+    # 设置默认地址
+    url(r'^addresses/(?P<address_id>\d+)/default/$', DefaultAddressView.as_view(), name='addresses_default'),
+    # 修改默认标题
+    url(r'^addresses/(?P<address_id>\d+)/title/$', UpdateTitleAddressView.as_view(), name='addresses_title'),
+    url(r'^change_pwd/$', ChangePasswordView.as_view(), name='change_pwd'),
 
 ]
