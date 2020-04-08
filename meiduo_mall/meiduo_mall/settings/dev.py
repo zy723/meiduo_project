@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'verifications',  # 验证码模块
     'oauth',  # 用户认证模块
     'areas',  # 省市区
+    'goods',  # 商品详情模块
 ]
 
 MIDDLEWARE = [
