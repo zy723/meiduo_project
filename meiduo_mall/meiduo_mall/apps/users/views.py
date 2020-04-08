@@ -34,7 +34,38 @@ class ChangePasswordView(LoginRequiredMixin, View):
         :param request:
         :return:
         """
-        pass
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        new_password2 = request.POST.get('new_password2')
+
+        # 校验参数
+        if not all([old_password, new_password, new_password2]):
+            return http.HttpResponseForbidden('缺少必传参数')
+
+        if not re.match(r'^[0-9a-zA-Z]{8,20}$', new_password):
+            return http.HttpResponseForbidden('新密码长度为8-20位')
+        if new_password2 != new_password:
+            return http.HttpResponseForbidden('两次输入密码不一致')
+        if old_password == new_password:
+            return render(request, 'user_center_pass.html', {'change_pwd_errmsg': '新老密码不能相同'})
+
+        # 更改密码
+
+        try:
+            request.user.set_password(new_password)
+            request.user.save()
+        except Exception as e:
+            logger.error(e)
+            return render(request, 'user_center_pass.html', {'change_pwd_errmsg': '修改密码失败'})
+
+        # 清理登录状态
+        logout(request)
+        response = redirect(reverse('users:login'))
+        response.delete_cookie('username')
+
+        return response
+
+        # return render(request, 'user_center_pass.html', {'change_pwd_errmsg': '修改密码成功'})
 
 
 class UpdateTitleAddressView(LoginRequiredMixin, View):

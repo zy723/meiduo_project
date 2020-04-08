@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="login_top clearfix">
-    <a href="index.html" class="login_logo"><img src="{{ static('images/logo02.png') }}"></a>
+    <a href="{{ url('contents:index') }}" class="login_logo"><img src="{{ static('images/logo02.png') }}"></a>
 </div>
 <div class="login_form_bg" id="app">
     <div class="login_form_wrap clearfix">
@@ -19,7 +19,7 @@
         <div class="slogan fl">商品美 · 种类多 · 欢迎光临</div>
         <div class="login_form fr">
             <div class="login_title clearfix">
-                <a href="javascript:;" class="cur">账户登录</a>
+                <a href="{{ url('users:login') }}" class="cur">账户登录</a>
             </div>
             <div class="form_con">
                 <div class="form_input cur">

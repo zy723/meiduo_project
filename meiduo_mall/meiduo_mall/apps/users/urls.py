@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'^addresses/(?P<address_id>\d+)/default/$', DefaultAddressView.as_view(), name='addresses_default'),
     # 修改默认标题
     url(r'^addresses/(?P<address_id>\d+)/title/$', UpdateTitleAddressView.as_view(), name='addresses_title'),
+    # 修改密码
     url(r'^change_pwd/$', ChangePasswordView.as_view(), name='change_pwd'),
 
 ]

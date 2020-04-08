@@ -6,6 +6,7 @@ let vm = new Vue({
         old_password: '',
         new_password: '',
         new_password2: '',
+
         error_old_password: false,
         error_new_password: false,
         error_new_password2: false,
