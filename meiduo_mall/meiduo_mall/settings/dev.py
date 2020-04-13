@@ -244,7 +244,8 @@ EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
 DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
 
 # FastDFS 相关参数
-FDFS_BASE_URL = 'http://192.168.0.169:8888/'
+# FDFS_BASE_URL = 'http://192.168.0.169:8888/'
+FDFS_BASE_URL = 'http://192.168.200.249:8888/'
 
 
 
