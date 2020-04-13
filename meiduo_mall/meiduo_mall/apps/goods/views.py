@@ -1,6 +1,5 @@
 import logging
 from django import http
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import render
 
@@ -11,8 +10,49 @@ from contents.utils import get_categories
 from goods import constants
 from goods.models import GoodsCategory, SKU
 from goods.utils import get_breadcrumb
+from meiduo_mall.utils.response_code import RETCODE
 
 logger = logging.getLogger('django')
+
+
+class HotGoodsView(View):
+    """
+    热销排行
+    """
+
+    def get(self, request, category_id):
+        """
+        响应json 数据
+        {
+            code	状态码
+            errmsg	错误信息
+            hot_skus[ ]	热销SKU列表
+            id	SKU编号
+            default_image_url	商品默认图片
+            name	商品名称
+            price	商品价格
+        }
+        :param request:
+        :param category_id:
+        :return:
+        """
+        try:
+            suks = SKU.objects.filter(category_id=category_id, is_launched=True).order_by('-sales')[:2]
+
+        except Exception as e:
+            logger.error(e)
+            return http.HttpResponseNotFound('category_id 不存在')
+
+        hot_skus = []
+        for sku in suks:
+            hot_skus.append({
+                'id': sku.id,
+                'default_image_url': sku.default_image.url,
+                'name': sku.name,
+                'price': sku.price,
+            })
+
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK', 'hot_skus': hot_skus})
 
 
 class ListView(View):
