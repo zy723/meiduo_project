@@ -15,6 +15,8 @@ import os
 import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from sys import platform
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 # Quick-start development settings - unsuitable for production
@@ -37,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'meiduo_mall.apps.users',
+    'haystack',  # 全文搜索引擎
     'users',  # 用户注册页面
     'contents',  # 首页展示
     'verifications',  # 验证码模块
@@ -243,16 +245,29 @@ EMAIL_VERIFY_URL = 'http://www.meiduo.site:8000/emails/verification/'
 # 指定自定义的Django文件存储类
 DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fdfs_storage.FastDFSStorage'
 
+# SYS_HOST 相关参数
+syste = sys.platform
+if (syste == "win32"):
+    # windows
+    SYS_HOST = '192.168.0.169'
+else:
+    # ubuntu
+    SYS_HOST = '192.168.200.249'
+
 # FastDFS 相关参数
-# FDFS_BASE_URL = 'http://192.168.0.169:8888/'
-FDFS_BASE_URL = 'http://192.168.200.249:8888/'
+FDFS_BASE_URL = 'http://' + SYS_HOST + ':8888/'
 
+# Haystack 搜索引擎
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://' + SYS_HOST + ':9200/',  # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
+    },
+}
 
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
-
-
-
-
-
-
-
+# 搜索结果显示条数
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5

@@ -18,6 +18,8 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    # 搜索引擎的建立
+    url(r'^search/', include('haystack.urls')),
     # user 模块
     url(r'^', include('users.urls', namespace='users')),
     # contents 首页模块

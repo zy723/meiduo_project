@@ -20,3 +20,5 @@ QQLoginTool==0.3.0
 itsdangerous==1.1.0
 fdfs-client-py==1.2.6
 mutagen==1.44.0
+django-haystack==2.8.1
+elasticsearch==2.4.1
