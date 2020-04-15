@@ -18,8 +18,10 @@ from django.conf.urls import url
 from .views import *
 
 urlpatterns = [
-    # url(r'^$', IndexView.as_view(), name='index'),
     # 商品列表页
     url(r'^list/(?P<category_id>\d+)/(?P<page_num>\d+)/$', ListView.as_view(), name='list'),
+    # 热销排行
     url(r'^hot/(?P<category_id>\d+)/$', HotGoodsView.as_view(), name='hot'),
+    # 商品详情
+    url(r'detail/(?P<sku_id>\d+)/', DetailView.as_view(), name='detail')
 ]
