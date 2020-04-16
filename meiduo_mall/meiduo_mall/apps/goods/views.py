@@ -1,18 +1,61 @@
+import datetime
 import logging
+
 from django import http
 from django.core.paginator import Paginator, EmptyPage
 from django.shortcuts import render
-
 # Create your views here.
+from django.utils import timezone
 from django.views.generic.base import View
 
 from contents.utils import get_categories
 from goods import constants
-from goods.models import GoodsCategory, SKU
+from goods.models import GoodsCategory, SKU, GoodsVisitCount
 from goods.utils import get_breadcrumb
 from meiduo_mall.utils.response_code import RETCODE
 
 logger = logging.getLogger('django')
+
+
+class DetailVisitView(View):
+    """
+    商品的访问量
+    """
+
+    def post(self, request, category_id):
+        """
+        :param request:
+        :param category_id: 商品ID
+        :return:
+        """
+
+        # 从GoodsCategory中查询商品 category_id 是否存在
+
+        try:
+            category = GoodsCategory.objects.get(id=category_id)
+        except GoodsCategory.DoesNotExist:
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '缺少必传参数'})
+
+        # 判断该商品今天是否存在访问记录 存在  记录+1 不存在新建记录
+        t = timezone.localtime()
+        today_str = '%d-%02d-%02d' % (t.year, t.month, t.day)
+        today_date = datetime.datetime.strptime(today_str, '%Y-%m-%d')
+
+        try:
+            counts_data = category.goodsvisitcount_set.get(date=today_date)
+        except GoodsVisitCount.DoesNotExist:
+            counts_data = GoodsVisitCount()
+        # 响应Json 类型 数据今日访问量
+
+        try:
+            counts_data.category = category
+            counts_data.count += 1
+            counts_data.save()
+        except Exception as e:
+            logger.error(e)
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': '服务器异常'})
+
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'OK'})
 
 
 class DetailView(View):
@@ -20,7 +63,7 @@ class DetailView(View):
     商品详情页面
     """
 
-    def get2(self, request, sku_id):
+    def get(self, request, sku_id):
 
         # 接收sku_id 并且校验参数是否存在
         try:
@@ -66,7 +109,7 @@ class DetailView(View):
             spec_options = spec.options.all()
             for option in spec_options:
                 key[index] = option.id
-                option.sku_id = spec_options
+                option.sku_id = spec_sku_map.get(tuple(key))
             spec.spec_options = spec_options
 
         # 构造返回的上下文
@@ -76,66 +119,6 @@ class DetailView(View):
             'sku': sku,
             'specs': goods_spacs,
         }
-        return render(request, 'detail.html', context)
-
-    def get(self, request, sku_id):
-        """提供商品详情页"""
-        # 接收和校验参数
-        try:
-            # 查询sku
-            sku = SKU.objects.get(id=sku_id)
-        except SKU.DoesNotExist:
-            # return http.HttpResponseNotFound('sku_id 不存在')
-            return render(request, '404.html')
-
-        # 查询商品分类
-        categories = get_categories()
-
-        # 查询面包屑导航
-        breadcrumb = get_breadcrumb(sku.category)
-
-        # 构建当前商品的规格键
-        sku_specs = sku.specs.order_by('spec_id')
-        sku_key = []
-        for spec in sku_specs:
-            sku_key.append(spec.option.id)
-        # 获取当前商品的所有SKU
-        skus = sku.spu.sku_set.all()
-        # 构建不同规格参数（选项）的sku字典
-        spec_sku_map = {}
-        for s in skus:
-            # 获取sku的规格参数
-            s_specs = s.specs.order_by('spec_id')
-            # 用于形成规格参数-sku字典的键
-            key = []
-            for spec in s_specs:
-                key.append(spec.option.id)
-            # 向规格参数-sku字典添加记录
-            spec_sku_map[tuple(key)] = s.id
-        # 获取当前商品的规格信息
-        goods_specs = sku.spu.specs.order_by('id')
-        # 若当前sku的规格信息不完整，则不再继续
-        if len(sku_key) < len(goods_specs):
-            return
-        for index, spec in enumerate(goods_specs):
-            # 复制当前sku的规格键
-            key = sku_key[:]
-            # 该规格的选项
-            spec_options = spec.options.all()
-            for option in spec_options:
-                # 在规格参数sku字典中查找符合当前规格的sku
-                key[index] = option.id
-                option.sku_id = spec_sku_map.get(tuple(key))
-            spec.spec_options = spec_options
-
-        # 构造上下文
-        context = {
-            'categories': categories,
-            'breadcrumb': breadcrumb,
-            'sku': sku,
-            'specs': goods_specs
-        }
-
         return render(request, 'detail.html', context)
 
 

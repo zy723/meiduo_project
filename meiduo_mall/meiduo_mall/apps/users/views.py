@@ -1,6 +1,7 @@
 import json
-import re
 import logging
+import re
+
 from django import http
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,15 +9,98 @@ from django.db import DatabaseError
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic.base import View
+from django_redis import get_redis_connection
 
 from celery_tasks.email.tasks import send_verify_email
-from . import constants
-from .utils import generate_verify_email_url, check_verify_email_token
+from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
 from meiduo_mall.utils.views import LoginRequiredJSONMixin
+from . import constants
 from .models import *
+from .utils import generate_verify_email_url, check_verify_email_token
 
 logger = logging.getLogger('django')
+
+
+class UserBrowseHistory(LoginRequiredMixin, View):
+    """
+    用户浏览记录
+    """
+
+    def post(self, request):
+        """
+        保存用户浏览记录
+        :param request: 参数 {sku_id：''}
+        :return: Json {code:0, errmsg:''}
+        """
+        # 获取请求参数
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return http.JsonResponse({'code': RETCODE.DBERR, 'errmsg': 'sku不存在'})
+
+        # 保存用户浏览记录到redis
+        redis_conn = get_redis_connection('history')
+
+        pl = redis_conn.pipeline()  # 管道对条数据合并一起提交
+        user_id = request.user.id
+
+        # 去重
+        pl.lrem('history_%s' % user_id, 0, user_id)
+        # 存储数据
+        pl.lpush('history_%s' % user_id, sku_id)
+        # 截取前5条记录
+        pl.ltrim('history_%s' % user_id, 0, 4)
+        # 管道执行
+        pl.execute()
+
+        # 响应结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'ok'})
+
+        pass
+
+    def get(self, request):
+        """
+        用户浏览记录获取
+        :param request:
+        :return: JSON
+
+            {
+                "code":"0",
+                "errmsg":"OK",
+                "skus":[
+                    {
+                        "id":6,
+                        "name":"Apple iPhone 8 Plus (A1864) 256GB 深空灰色 移动联通电信4G手机",
+                        "default_image_url":"http://image.meiduo.site:8888/group1/M00/00/02/CtM3BVrRbI2ARekNAAFZsBqChgk3141998",
+                        "price":"7988.00"
+                    },
+                    ......
+                    ]
+            }
+        """
+
+        redis_conn = get_redis_connection('history')
+        sku_ids = redis_conn.lrange('history_%s' % request.user.id, 0, -1)
+
+        # 根据sku_ids列表 信息查询sku信息
+
+        skus = []
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price,
+            })
+
+        # 响应返回数据
+
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'ok', 'skus': skus})
 
 
 class ChangePasswordView(LoginRequiredMixin, View):

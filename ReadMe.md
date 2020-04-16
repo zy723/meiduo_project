@@ -18,6 +18,10 @@
 
 ## 6. 商品
 
+    - fastdfs 重新开启
+        sudo docker start storage
+        sudo docker start tracker
+
 
 ## 7. 购物车
 
@@ -47,3 +51,4 @@ on_delete=models.SET,         # 删除关联数据,
  b. 与之关联的值设置为可执行对象的返回值,设置：models.SET(可执行对象)
 
 ```
+
