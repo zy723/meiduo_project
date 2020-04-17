@@ -52,3 +52,22 @@ on_delete=models.SET,         # 删除关联数据,
 
 ```
 
+查看数据 大小
+
+```sql
+# 查看数据库大小 单位 M
+USE information_schema;
+SELECT TABLE_SCHEMA, SUM(DATA_LENGTH)/1024/1024 FROM TABLES GROUP BY TABLE_SCHEMA;
+
+```
+
+- start app
+
+```text
+sudo docker start storage
+sudo docker start tracker
+sudo docker start elasticsearch
+sudo redis-server /etc/redis/redis.conf
+```
+
+

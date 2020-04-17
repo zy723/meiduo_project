@@ -20,5 +20,6 @@ from carts.views import *
 urlpatterns = [
     # 购物车模块
     url(r'^carts/$', CartsView.as_view(), name='carts'),
-    # url(r'^oauth_callback/$', QQAuthUserView.as_view(), name='qq_oauth_callback'),
+    # 全选购物车
+    url(r'^carts/selection/$', CartsSelectAllView.as_view(), name='selection'),
 ]
