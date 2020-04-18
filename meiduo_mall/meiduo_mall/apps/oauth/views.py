@@ -11,6 +11,7 @@ import logging
 from QQLoginTool.QQtool import OAuthQQ
 from django_redis import get_redis_connection
 
+from carts.utils import merge_cart_cookie_to_redis
 from meiduo_mall.apps.oauth.utils import generate_token, check_access_token
 from users.models import User
 
@@ -123,6 +124,8 @@ class QQAuthUserView(View):
         next = request.GET.get('state')
         response = redirect(next)
         response.set_cookie('username', oauth_qq_user.user.username, max_age=3600 * 24 * 15)
+        response = merge_cart_cookie_to_redis(request, user, response)
+
         return response
 
 

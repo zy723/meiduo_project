@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.generic.base import View
 from django_redis import get_redis_connection
 
+from carts.utils import merge_cart_cookie_to_redis
 from celery_tasks.email.tasks import send_verify_email
 from goods.models import SKU
 from meiduo_mall.utils.response_code import RETCODE
@@ -613,7 +614,7 @@ class LoginView(View):
             response = redirect(reverse('contents:index'))
         # 写入cookie 有效期 15天
         response.set_cookie('username', user.username, max_age=3600 * 24 * 15)
-
+        response = merge_cart_cookie_to_redis(request, user, response)
         return response
 
 

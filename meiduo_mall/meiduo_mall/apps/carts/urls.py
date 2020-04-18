@@ -22,4 +22,6 @@ urlpatterns = [
     url(r'^carts/$', CartsView.as_view(), name='carts'),
     # 全选购物车
     url(r'^carts/selection/$', CartsSelectAllView.as_view(), name='selection'),
+    # 简单购物车数据
+    url(r'^carts/simple/$', CartsSimpleView.as_view(), name='simple'),
 ]

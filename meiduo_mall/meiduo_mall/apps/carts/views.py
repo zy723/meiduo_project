@@ -16,6 +16,61 @@ from meiduo_mall.utils.response_code import RETCODE
 logger = logging.getLogger('django')
 
 
+class CartsSimpleView(View):
+    """
+    简单购物车页面展示
+    """
+
+    def get(self, request):
+        """
+        请求参数
+         空
+
+        相应结果 Json
+        code	状态码
+        errmsg	错误信息
+        cart_skus[ ]	简单购物车SKU列表
+        id	购物车SKU编号
+        name	购物车SKU名称
+        count	购物车SKU数量
+        default_image_url	购物车SKU图片
+        :return: Json
+        """
+
+        user = request.user
+        if user.is_authenticated:
+            # 用户登陆
+            redis_connection = get_redis_connection('carts')
+            redis_cart = redis_connection.hgetall('carts_%s' % user.id)
+            carts_selected = redis_connection.smembers('selected_%s' % user.id)
+            # 统一 carts_dict 数据格式
+            carts_dict = {}
+            for sku_id, count in redis_cart.items():
+                carts_dict[int(sku_id)] = {
+                    'count': int(count),
+                    'selected': sku_id in carts_selected
+                }
+        else:
+            # 用户未登录
+            cookies_carts_str = request.COOKIES.get('carts')
+            carts_dict = pickle.loads(base64.b64decode(cookies_carts_str.encode()))
+            if not carts_dict:
+                carts_dict = {}
+
+        cart_skus = []
+        sku_ids = carts_dict.keys()
+        skus = SKU.objects.filter(id__in=sku_ids)
+        for sku in skus:
+            cart_skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'count': carts_dict.get(sku.id).get('count'),
+                'default_image_url': sku.default_image.url,
+            })
+        # 响应结果
+        return http.JsonResponse({'code': RETCODE.OK, 'errmsg': 'ok', 'cart_skus': cart_skus})
+
+
 class CartsSelectAllView(View):
     """
     全选购物车
