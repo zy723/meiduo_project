@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'areas',  # 省市区
     'goods',  # 商品详情模块
     'carts',  # 购物车模块
+    'orders',  # 订单中心
 ]
 
 MIDDLEWARE = [
