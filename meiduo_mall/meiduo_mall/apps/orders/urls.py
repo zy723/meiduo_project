@@ -18,6 +18,13 @@ from django.conf.urls import url
 from .views import *
 
 urlpatterns = [
+    # 获取订单信息详情
     url(r'^orders/settlement/$', OrderSettlementView.as_view(), name='settlement'),
-    # url(r'^oauth_callback/$', QQAuthUserView.as_view(), name='qq_oauth_callback'),
+    # 订单提交接口
+    url(r'^orders/commit/$', OrderCommitView.as_view(), name='commit'),
+    # 展示下单成功
+    url(r'^orders/success/$', OrderSuccessView.as_view(), name='success'),
+    # 展示订单信息
+    url(r'^orders/info/(?P<page_num>\d+)/$', UserOrderInfoView.as_view(), name='info'),
+
 ]
