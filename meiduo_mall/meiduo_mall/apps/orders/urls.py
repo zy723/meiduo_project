@@ -26,5 +26,7 @@ urlpatterns = [
     url(r'^orders/success/$', OrderSuccessView.as_view(), name='success'),
     # 展示订单信息
     url(r'^orders/info/(?P<page_num>\d+)/$', UserOrderInfoView.as_view(), name='info'),
+    # 商品评价
+    url(r'^orders/comment/$', OrderCommentView.as_view(), name='comment'),
 
 ]

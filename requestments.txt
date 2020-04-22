@@ -22,3 +22,5 @@ fdfs-client-py==1.2.6
 mutagen==1.44.0
 django-haystack==2.8.1
 elasticsearch==2.4.1
+python-alipay-sdk==2.0.1
+

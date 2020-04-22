@@ -17,5 +17,8 @@ from django.conf.urls import url
 from .views import *
 
 urlpatterns = [
-    # url(r'^areas/$', AreasView.as_view(), name='area'),
+    # 响应支付连接
+    url(r'^payment/(?P<order_id>\d+)/$', PaymentView.as_view(), name='payment'),
+    # 支付状态
+    url(r'^payment/status/$', PaymentStatusView.as_view(), name='status'),
 ]

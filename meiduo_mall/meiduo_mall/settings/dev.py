@@ -288,3 +288,9 @@ HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 # 搜索结果显示条数
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+# 支付宝参数
+ALIPAY_APPID = '2016082100308405'
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do'
+ALIPAY_RETURN_URL = 'http://www.meiduo.site:8000/payment/status/'
