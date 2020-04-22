@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'goods',  # 商品详情模块
     'carts',  # 购物车模块
     'orders',  # 订单中心
+    'payment',  # 支付模块
 ]
 
 MIDDLEWARE = [
