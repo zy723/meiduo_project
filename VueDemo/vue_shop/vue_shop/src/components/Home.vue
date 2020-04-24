@@ -4,7 +4,7 @@
     <el-header>
       <div>
         <img src="../assets/heima.png" alt="">
-        <span>电商后台管理系统</span>
+        <span>后台管理系统</span>
       </div>
       <el-button type="info" @click="logout">退出</el-button>
     </el-header>
@@ -18,8 +18,11 @@
         <el-menu
           background-color="#333744"
           text-color="#fff"
-          active-text-color="#409EFF" unique-opened :collapse="isCollapsed" :collapse-transition="false" :router="true">
+          active-text-color="#409EFF" unique-opened :collapse="isCollapsed" :collapse-transition="false" :router="true"
+          :default-active="activePath">
           <!--   unique-opened 是否只保持一个子菜单的展开       -->
+          <!--   collapse-transition 是否开启折叠动画       -->
+          <!--   default-active 当前激活菜单的 index       -->
           <!--      一级菜单    -->
           <el-submenu :index="item.id + ''" v-for="item in menulist" :key="item.id">
             <!--   一级菜单模板区域         -->
@@ -30,7 +33,8 @@
               <span>{{ item.authName}}</span>
             </template>
             <!--   二级菜单         -->
-            <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id">
+            <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id"
+                          @click="saveNavState('/' + subItem.path)">
               <template slot="title">
                 <!--    图标          -->
                 <i class="el-icon-menu"></i>
@@ -57,6 +61,7 @@
     name: "Home",
     created() {
       this.getMenuList();
+      this.activePath = window.sessionStorage.getItem('activePath');
     },
 
     data() {
@@ -73,6 +78,8 @@
         },
         // 是否被折叠
         isCollapsed: false,
+        // 当前被激活的菜单项
+        activePath: '',
       }
     },
     methods: {
@@ -91,6 +98,11 @@
       // 点击按钮，切换菜单的折叠与展开
       toggleCollapse() {
         this.isCollapsed = !this.isCollapsed;
+      },
+      // 保存当前被展开的激活状态
+      saveNavState(activePath) {
+        window.sessionStorage.setItem('activePath', activePath);
+        this.activePath = activePath;
       },
     }
   }
