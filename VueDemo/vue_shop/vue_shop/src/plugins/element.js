@@ -25,7 +25,8 @@ import {
   Pagination,
   MessageBox,
   Select,
-  Option
+  Option,
+  Tag,
 } from 'element-ui'
 
 Vue.use(Button)
@@ -52,5 +53,6 @@ Vue.use(Col)
 Vue.use(Pagination)
 Vue.use(Select)
 Vue.use(Option)
+Vue.use(Tag)
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm

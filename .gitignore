@@ -131,3 +131,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+将删除 meiduo_mall/meiduo_mall/apps/dump.rdb
