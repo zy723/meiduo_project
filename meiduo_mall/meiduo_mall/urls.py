@@ -38,4 +38,6 @@ urlpatterns = [
     url(r'^', include('orders.urls', namespace='orders')),
     # payment 支付模块
     url(r'^', include('payment.urls', namespace='payment')),
+    # 美多后台
+    url('^meiduo_admin/', include('meiduo_admin.urls')),
 ]

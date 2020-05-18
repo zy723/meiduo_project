@@ -15,6 +15,7 @@ import os
 import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import datetime
 from sys import platform
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,7 +34,6 @@ ALLOWED_HOSTS = ['www.meiduo.site', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
-    'django_crontab',  # 定时任务
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,9 +50,13 @@ INSTALLED_APPS = [
     'carts',  # 购物车模块
     'orders',  # 订单中心
     'payment',  # 支付模块
+
+    'corsheaders',  # 跨域访问
+    'django_crontab',  # 定时任务
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -304,3 +308,34 @@ CRONJOBS = [
 ]
 # 解决 crontab 中文问题
 CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
+
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:8080',
+    '127.0.0.1:8000',
+    '192.168.144.69:8000',
+    '192.168.144.69:8080',
+    'localhost:8080',
+    'www.meiduo.site:8080',
+    'api.meiduo.site:8000'
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
+
+REST_FRAMEWORK = {
+    # 指定认证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+# JWt配置
+JWT_AUTH = {
+    # 指定有效期
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+    # 指定返回结果方法
+    'JWT_RESPONSE_PAYLOAD_HANDLER':
+        'meiduo_admin.utils.jwt_response_payload_handler',
+}
+
+FASTDFS_PATH = os.path.join(BASE_DIR, 'utils/fdfs/client.conf')
